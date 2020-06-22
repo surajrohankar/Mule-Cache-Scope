@@ -1,0 +1,15 @@
+httpListener:
+  portForCache: "8081"
+  pathForCache: "/cache"
+  portfordbcache: "8082"
+  pathfordbcache: "/dbCache"
+
+
+db:
+  host: "localhost"
+  port: "3306"
+  username: "root"
+  password: "root"
+  database: "dbdemo"
+  
+  

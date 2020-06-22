@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="b2b3fe4c-1168-4178-a636-ba37dad83e91" keyGenerationExpression="#[vars.id]" >
+		<os:private-object-store alias="test" expirationInterval="5" persistent="false" maxEntries="100" entryTtl="10"/>
+	</ee:object-store-caching-strategy>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="fdf44087-240c-490f-b1ee-f5d213a7722d" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.username}" password="${db.password}" database="${db.database}" />
+	</db:config>
+	<flow name="muleCacheScopeFlow" doc:id="52d9550d-13ae-47d1-a809-72d819f31f87" initialState="started">
+		<http:listener doc:name="8081/cache" doc:id="2058b095-65b9-450d-a21d-ee3ccebc7131" path="${httpListener.pathForCache}" config-ref="HTTP_Listener_config"/>
+		<set-payload value="#[payload]" doc:name="Payload" doc:id="56fd4520-8ab1-469a-b33a-b9f1520a59ea" />
+		<set-variable value="#[now() as String {format: 'HH:mm:ss'}]" doc:name="Current Time" doc:id="06d93933-1eff-4b39-a979-2aca0a37e467" variableName="startTime"/>
+		<set-variable value="#[attributes.queryParams.id]" doc:name="QueryParams" doc:id="1687ac0b-cb92-44f6-a6c5-9beab7392aa5" variableName="id"/>
+		<ee:cache doc:name="Cache" doc:id="80ba9cb9-9a96-496b-b379-b9746f872c32" cachingStrategy-ref="Caching_Strategy">
+			<set-payload value="#[now() as String {format: 'HH:mm:ss'}]" doc:name="Response Time" doc:id="2e20b835-683a-48f1-92cc-a7801449133b" />
+			<logger level="INFO" doc:name="Inside cache" doc:id="0f54a1dd-0390-475f-be25-1fc14c8ac9ee" message='"Inside cache"'/>
+		</ee:cache>
+		<set-payload value="#['Time: ' ++ vars.startTime ++ ', Response: ' ++ payload]" doc:name="Set Payload" doc:id="783fbbb4-c29f-4d41-8612-4cfb0575ffcf" />
+	</flow>
+	
+</mule>
